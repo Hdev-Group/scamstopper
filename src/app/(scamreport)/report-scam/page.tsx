@@ -129,7 +129,6 @@ const scamCategories = [
 
   export default function ReportScam() {
     const user = useUser()
-    console.log(user)
 
     useEffect(() => {
       const photovidproof = document.getElementById('photovidproof') as HTMLInputElement | null;
@@ -240,7 +239,6 @@ const scamCategories = [
       }];
 
       const storageinfo = storageId
-      console.log(storageinfo)
     
       const formData = {
         selectedCategory,

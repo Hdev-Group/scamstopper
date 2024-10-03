@@ -46,7 +46,7 @@ export default defineSchema({
       lastupdated: v.optional(v.string()), 
     }),
     imagestore: defineTable({
-      body: v.string(),
+      body: v.any(),
       author: v.string(),
       format: v.string(),
     }).index("byauthor", ["author"]),

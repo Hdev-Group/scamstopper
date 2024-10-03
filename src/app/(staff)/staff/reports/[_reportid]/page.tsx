@@ -28,17 +28,15 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
     const [isDeleted, setIsDeleted] = useState(false)
 
     const handleDelete = () => {
-    console.log('Report deleted')
     setIsDeleted(true)
   }
     // Fetch staff status and report regardless of condition
-    const prooflister = useQuery(api.submitter.list)
-    const proofurl = prooflister?.[0]?.url
     const staff = useQuery(api.isstaff.getter, { userId: userId });
     const report = useQuery(api.scamreportsreviewer.getter);
     const filteredReport = report?.filter((report: any) => report._id === params._reportid);
-    console.log(filteredReport);
     const accurateReport = filteredReport?.[0]
+    const prooflister = useQuery(api.submitter.list, accurateReport?.proof ? { body: accurateReport.proof } : { body: "" });
+    const proofurl = prooflister?.[0]?.url;    
     const Subcategory = accurateReport?.selectedSubcategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const Category = accurateReport?.selectedCategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 

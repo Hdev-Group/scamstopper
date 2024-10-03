@@ -18,21 +18,27 @@ export const sendImage = mutation({
 });
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
-    const messages = await ctx.db.query("imagestore").collect();
+  args: {body: v.any() },
+  handler: async (ctx, { body }) => {
+    // Check if body exists in "imagestore"
+    const messages = await ctx.db.query("imagestore").filter((q) => q.eq(q.field("body"), body)).collect(); 
     return Promise.all(
       messages.map(async (message) => {
-        const imageUrl = message.format === "image" ? await ctx.storage.getUrl(message.body) : null;
-        console.log("Generated Image URL:", imageUrl); // Debug log
-        return {
-          ...message,
-          ...(imageUrl ? { url: imageUrl } : {}),
-        };
+        // Check if format is "image" and get the Url
+        if (message.format === "image") {
+          const imageUrl = await ctx.storage.getUrl(message.body);
+
+          return {
+            ...message,
+            url: imageUrl,
+          };
+        }
+        return message;
       }),
-    );    
+    );
   },
 });
+
 
 export const addScamForm = mutation({
     args: {

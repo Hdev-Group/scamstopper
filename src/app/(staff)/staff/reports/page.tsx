@@ -49,7 +49,6 @@ interface Report {
 
     if (!staff) return null;
     function handleReview(id: string) {
-      console.log(id);
     }
   
     function handleSort(column: string) {
