@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Facebook, Twitter, Instagram, AlertTriangle } from "lucide-react"
 
 export default function Footer() {
+    
   return (
     <footer className="bg-muted border-t border-grey-900 dark:border-black text-muted-foreground">
       <div className="container mx-auto px-4 py-8">

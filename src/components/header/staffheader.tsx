@@ -17,7 +17,7 @@ import {
 
 
 
-export default function Header() {
+export default function StaffHeader() {
   const user = useUser();
   const auth = useAuth();
   const [isdark, setDark] = useState(true);
@@ -105,11 +105,11 @@ export default function Header() {
                     }
                     </Link>
                     <nav className='md:flex hidden flex-row items-end justify-end text-sm dark:text-white text-black'>
-                        <Link href='/support'>
-                            <div className='mx-2 hover:underline-offset-2 hover:underline'>Support</div>
+                        <Link href='/staff/tickets'>
+                            <div className='mx-2 hover:underline-offset-2 hover:underline'>Tickets</div>
                         </Link>
-                        <Link href='/about'>
-                            <div className='mx-2 hover:underline-offset-2 hover:underline'>About</div>
+                        <Link href='/staff/reports'>
+                            <div className='mx-2 hover:underline-offset-2 hover:underline'>Reports</div>
                         </Link>
                     </nav>
                 </div>

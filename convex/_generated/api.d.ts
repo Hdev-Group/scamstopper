@@ -16,6 +16,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as isstaff from "../isstaff.js";
+import type * as scamreportsreviewer from "../scamreportsreviewer.js";
 import type * as submitter from "../submitter.js";
 
 /**
@@ -28,6 +29,7 @@ import type * as submitter from "../submitter.js";
  */
 declare const fullApi: ApiFromModules<{
   isstaff: typeof isstaff;
+  scamreportsreviewer: typeof scamreportsreviewer;
   submitter: typeof submitter;
 }>;
 export declare const api: FilterApi<

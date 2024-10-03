@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Header from '../../../components/header/header'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,14 @@ import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useMutation, useQuery } from "convex/react";
 import { api } from '../../../../convex/_generated/api'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import Footer from '../../../components/footer/footer'
 
 const scamCategories = [
@@ -123,6 +131,47 @@ const scamCategories = [
     const user = useUser()
     console.log(user)
 
+    useEffect(() => {
+      const photovidproof = document.getElementById('photovidproof') as HTMLInputElement | null;
+
+      photovidproof?.addEventListener('change', (e) => {
+        // check if the photo or video is under 5MB
+
+        const previewContainer = document.getElementById('previewContainer');
+        if (!previewContainer) return;
+        
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File size must be less than 5MB');
+          return;
+        }
+      
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // Clear previous preview
+          previewContainer.innerHTML = '';
+      
+          if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = reader.result as string;
+            img.className = 'w-full h-auto';
+            previewContainer.appendChild(img);
+          } else if (file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.src = reader.result as string;
+            video.controls = true;
+            video.className = 'w-full h-auto';
+            previewContainer.appendChild(video);
+          }
+      
+          // Make the preview visible
+          previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      });
+    }, []);
+
     const addscamform = useMutation(api.submitter.addScamForm)
     const [selectedCategory, setSelectedCategory] = useState('')
     const [selectedSubcategory, setSelectedSubcategory] = useState('')
@@ -147,16 +196,52 @@ const scamCategories = [
     const [hiddenFees, setHiddenFees] = useState('')
     const [destination, setDestination] = useState('')
     const [travelAgency, setTravelAgency] = useState('')
-  
-    const handleSubmit = (e: React.FormEvent) => {
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const generateUploadUrl = useMutation(api.submitter.generateUploadUrl);
+    const sendImage = useMutation(api.submitter.sendImage)
+
+    async function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
+      const photovidproof = document.getElementById('photovidproof') as HTMLInputElement | null;
+    
+      try {
+      if (!selectedImage) {
+        alert('Please upload a photo or video proof.');
+        return;
+      }
+
+      const postUrl = await generateUploadUrl();
+      
+      // Step 2: POST the file to the URL
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": selectedImage.type },
+        body: selectedImage,
+      });
+      
+      // Step 3: Extract storageId from the response
+      const { storageId } = await result.json();
+      
+      // Optional: Handle the selectedImage cleanup
+      setSelectedImage(null);
+      if (photovidproof) {
+        photovidproof.innerHTML = '';
+      }
+    
+      // Step 4: Prepare form data
+      const author = user.user?.firstName || 'unknown';
+      await sendImage({ storageId, author });
+      
       const userdetails = [{
         email: user?.user?.emailAddresses[0]?.emailAddress,
         firstName: user?.user?.firstName,
         lastName: user?.user?.lastName,
         id: user?.user?.id
       }];
-      
+
+      const storageinfo = storageId
+      console.log(storageinfo)
+    
       const formData = {
         selectedCategory,
         selectedSubcategory,
@@ -181,14 +266,15 @@ const scamCategories = [
         hiddenFees,
         destination,
         travelAgency,
+        proof: storageinfo, // Use the storageId retrieved from the response
         status: 'pending',
         reviewer: null,
-        userdetails // now correctly wrapped in an array
+        userdetails
       };
-      const filteredData = Object.fromEntries(
-        Object.entries(formData).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
-      );
-      addscamform(filteredData).then(() => {
+    
+      // Step 5: Call addscamform after successfully getting storageId
+      await addscamform(formData).then(() => {
+        alert('Scam report submitted successfully.');
         // Reset all state values
         setSelectedCategory('');
         setSelectedSubcategory('');
@@ -212,11 +298,14 @@ const scamCategories = [
         setSubscriptionService('');
         setHiddenFees('');
         setDestination('');
+        setSelectedImage(null);
         setTravelAgency('');
-      }).catch((error) => {
-        console.error('Error submitting scam report:', error);
       });
-    };
+      } catch (error) {
+      console.error(error);
+      alert('An error occurred while submitting the scam report. Please try again later.');
+      }
+    }
   
     const [search, setSearch] = useState('')
   
@@ -413,6 +502,12 @@ const scamCategories = [
                   user.user ? null : <div className='text-sm text-neutral-300'>You must be signed in to report a scam. <Link href='/sign-in'>Sign in</Link></div>
                 }
                 <div className='flex flex-col gap-4'>
+                  <Label htmlFor="photo_proof">Photo / Video Proof</Label>
+                  <Input type='file' id='photovidproof' onChange={(event) => setSelectedImage(event.target.files![0])} accept='image/png, image/jpeg, video/*'  />
+                  {/* lets have a preview of the photo here */}
+                  <div id='previewContainer' className='w-full h-auto' style={{ display: 'none' }}></div>
+                </div>
+                  <div className='flex flex-col gap-4'>
                   <Label className='text-xs text-neutral-300'>{user.user && (user.user.firstName)} By submitting this report, you agree to share the information with our fraud prevention team and relevant authorities after this process we will then post this on the website with information anonymized.</Label>
                   <Button type="submit" className="w-full">Submit Report</Button>
                 </div>

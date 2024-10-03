@@ -1,5 +1,38 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v, Validator } from "convex/values";
+
+export const generateUploadUrl = mutation(async (ctx) => {
+  return await ctx.storage.generateUploadUrl();
+});
+
+export const sendImage = mutation({
+  args: { storageId: v.string(), author: v.string() },
+  handler: async (ctx, args) => {
+    const results = await ctx.db.insert("imagestore", {
+      body: args.storageId,
+      author: args.author,
+      format: "image",
+    });
+    return results;
+  },
+});
+
+export const list = query({
+  args: {},
+  handler: async (ctx) => {
+    const messages = await ctx.db.query("imagestore").collect();
+    return Promise.all(
+      messages.map(async (message) => {
+        const imageUrl = message.format === "image" ? await ctx.storage.getUrl(message.body) : null;
+        console.log("Generated Image URL:", imageUrl); // Debug log
+        return {
+          ...message,
+          ...(imageUrl ? { url: imageUrl } : {}),
+        };
+      }),
+    );    
+  },
+});
 
 export const addScamForm = mutation({
     args: {
@@ -28,6 +61,7 @@ export const addScamForm = mutation({
         travelAgency: v.optional(v.string()),
         status: v.optional(v.string()),
         reviewer: v.optional(v.any()),
+        proof: v.optional(v.string()),
         userdetails: v.optional(v.array(v.object({
           email: v.optional(v.string()),
           firstName: v.optional(v.string()),
@@ -35,7 +69,7 @@ export const addScamForm = mutation({
           id: v.optional(v.string()),
         }))),
     },
-    handler: async (ctx, {selectedCategory, loanType, lenderName, subscriptionService, selectedSubcategory, customCategory, description, phone, impersonate, email, financialLoss, investmentType,accountType,accessDate,websiteUrl, onlinePlatform, charityName, donationAmount, destination, productName, healthClaim, hiddenFees, travelAgency, status, reviewer, userdetails}) => {
+    handler: async (ctx, {selectedCategory, proof, loanType, lenderName, subscriptionService, selectedSubcategory, customCategory, description, phone, impersonate, email, financialLoss, investmentType,accountType,accessDate,websiteUrl, onlinePlatform, charityName, donationAmount, destination, productName, healthClaim, hiddenFees, travelAgency, status, reviewer, userdetails}) => {
         const report = {
             selectedCategory,
             selectedSubcategory,
@@ -58,6 +92,7 @@ export const addScamForm = mutation({
             lenderName,
             subscriptionService,
             hiddenFees,
+            proof,
             destination,
             travelAgency,
             status: 'pending',

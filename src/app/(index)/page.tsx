@@ -129,7 +129,7 @@ export default function PageIndex() {
           </div>
           <motion.img 
             src="/placeholder.svg?height=400&width=400" 
-            alt="Scam awareness illustration" 
+            alt="" 
             className="w-full max-w-md lg:max-w-lg xl:max-w-xl hidden lg:block"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
