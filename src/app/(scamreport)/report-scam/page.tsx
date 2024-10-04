@@ -200,116 +200,125 @@ const scamCategories = [
       const photovidproof = document.getElementById('photovidproof') as HTMLInputElement | null;
     
       try {
-
-
-      const postUrl = await generateUploadUrl();
-      
-      
-      // Optional: Handle the selectedImage cleanup
-      setSelectedImage(null);
-      if (photovidproof) {
-        photovidproof.innerHTML = '';
-      }
+        const postUrl = await generateUploadUrl();
     
-      // Step 4: Prepare form data
-      const author = user.user?.firstName || 'unknown';
-      
-      const userdetails = [{
-        email: user?.user?.emailAddresses[0]?.emailAddress,
-        firstName: user?.user?.firstName,
-        lastName: user?.user?.lastName,
-        id: user?.user?.id
-      }];
-      var storageIder = null;
-      if (selectedImage) {
-        try {
-          const result = await fetch(postUrl, {
-            method: "POST",
-            headers: { "Content-Type": selectedImage.type },
-            body: selectedImage,
-          });
-      
-          // Extract storageId from the response
-          const jsonResult = await result.json();
-          storageIder = jsonResult.storageId;
-      
-          if (!storageIder) {
-            console.warn("Warning: storageId is null or undefined.");
-            // You can decide whether to continue or not based on your application logic
-          }
-        } catch (error) {
-          console.error("Error uploading the image:", error);
-          return; // Stop further execution in case of error
-        }
-      }
-      
-      // Create formData regardless of whether there is an image or not
-      const formData = {
-        selectedCategory,
-        selectedSubcategory,
-        customCategory,
-        description,
-        phone,
-        impersonate,
-        email,
-        financialLoss,
-        investmentType,
-        accountType,
-        accessDate,
-        websiteUrl,
-        onlinePlatform,
-        charityName,
-        donationAmount,
-        productName,
-        healthClaim,
-        loanType,
-        lenderName,
-        subscriptionService,
-        hiddenFees,
-        destination,
-        travelAgency,
-        proof: storageIder, // Use the storageId retrieved from the response (can be null)
-        status: 'pending',
-        reviewer: null,
-        userdetails,
-      };
-      
-      // Call sendImage, allowing storageId to be null
-      if (selectedImage) {
-        await sendImage({ body: storageIder, author, format: typefilename });
-      }
-      // Step 5: Call addscamform after successfully getting storageId
-      await addscamform(formData).then(() => {
-        alert('Scam report submitted successfully.');
-        // Reset all state values
-        setSelectedCategory('');
-        setSelectedSubcategory('');
-        setCustomCategory('');
-        setDescription('');
-        setPhone('');
-        setImpersonate('');
-        setEmail('');
-        setFinancialLoss('');
-        setInvestmentType('');
-        setAccountType('');
-        setAccessDate('');
-        setWebsiteUrl('');
-        setOnlinePlatform('');
-        setCharityName('');
-        setDonationAmount('');
-        setProductName('');
-        setHealthClaim('');
-        setLoanType('');
-        setLenderName('');
-        setSubscriptionService('');
-        setHiddenFees('');
-        setDestination('');
+        // Optional: Handle the selectedImage cleanup
         setSelectedImage(null);
-        setTravelAgency('');
-      });
+    
+        if (photovidproof) {
+          // Clear the file input value to reset it
+          photovidproof.value = '';
+        }
+    
+        // Step 4: Prepare form data
+        const author = user.user?.firstName || 'unknown';
+    
+        const userdetails = [{
+          email: user?.user?.emailAddresses[0]?.emailAddress,
+          firstName: user?.user?.firstName,
+          lastName: user?.user?.lastName,
+          id: user?.user?.id
+        }];
+    
+        let storageIder = null;
+    
+        if (selectedImage) {
+          try {
+            const result = await fetch(postUrl, {
+              method: "POST",
+              headers: { "Content-Type": selectedImage.type },
+              body: selectedImage,
+            });
+    
+            // Extract storageId from the response
+            const jsonResult = await result.json();
+            storageIder = jsonResult.storageId;
+    
+            if (!storageIder) {
+              console.warn("Warning: storageId is null or undefined.");
+              // You can decide whether to continue or not based on your application logic
+            }
+          } catch (error) {
+            console.error("Error uploading the image:", error);
+            return; // Stop further execution in case of error
+          }
+        }
+    
+        // Create formData regardless of whether there is an image or not
+        const formData = {
+          selectedCategory,
+          selectedSubcategory,
+          customCategory,
+          description,
+          phone,
+          impersonate,
+          email,
+          financialLoss,
+          investmentType,
+          accountType,
+          accessDate,
+          websiteUrl,
+          onlinePlatform,
+          charityName,
+          donationAmount,
+          productName,
+          healthClaim,
+          loanType,
+          lenderName,
+          subscriptionService,
+          hiddenFees,
+          destination,
+          travelAgency,
+          proof: storageIder, // Use the storageId retrieved from the response (can be null)
+          status: 'pending',
+          reviewer: null,
+          userdetails,
+        };
+    
+        // Call sendImage, allowing storageId to be null
+        if (selectedImage) {
+          await sendImage({ body: storageIder, author, format: typefilename });
+        }
+    
+        // Step 5: Call addscamform after successfully getting storageId
+        await addscamform(formData).then(() => {
+          alert('Scam report submitted successfully.');
+    
+          // Reset all state values
+          setSelectedCategory('');
+          setSelectedSubcategory('');
+          setCustomCategory('');
+          setDescription('');
+          setPhone('');
+          setImpersonate('');
+          setEmail('');
+          setFinancialLoss('');
+          setInvestmentType('');
+          setAccountType('');
+          setAccessDate('');
+          setWebsiteUrl('');
+          setOnlinePlatform('');
+          setCharityName('');
+          setDonationAmount('');
+          setProductName('');
+          setHealthClaim('');
+          setLoanType('');
+          setLenderName('');
+          setSubscriptionService('');
+          setHiddenFees('');
+          setDestination('');
+          setSelectedImage(null);
+          setTravelAgency('');
+    
+          // Clear the preview container
+          const previewContainer = document.getElementById('previewContainer');
+          if (previewContainer) {
+            previewContainer.innerHTML = '';
+            previewContainer.style.display = 'none'; // Hide the preview container if needed
+          }
+        });
       } catch (error) {
-      console.error(error);
-      alert('An error occurred while submitting the scam report. Please try again later.');
+        console.error("Error during form submission:", error);
       }
     }
   

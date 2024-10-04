@@ -2,7 +2,7 @@
 import StaffHeader from "@/components/header/staffheader";
 import Footer from '@/components/footer/footer';
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -26,10 +26,13 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
     const user = useUser();
     const userId = user?.user?.id;
     const [isDeleted, setIsDeleted] = useState(false)
+    const removereport = useMutation(api.reports.clear);
 
-    const handleDelete = () => {
+    const handleDelete = ({_id, storageid, imagestoreid}: any) => {
     setIsDeleted(true)
+      removereport({ id: _id, storageid: storageid, imagestoreid: imagestoreid });
   }
+
     // Fetch staff status and report regardless of condition
     const staff = useQuery(api.isstaff.getter, { userId: userId });
     const report = useQuery(api.scamreportsreviewer.getter);
@@ -48,7 +51,7 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
     if (isDeleted) {
         return (
           <div className="flex items-center justify-center min-h-screen">
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-md border-yellow-500">
               <CardContent className="pt-6 text-center">
                 <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Report Deleted</h2>
@@ -58,6 +61,21 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
           </div>
         )
       }
+
+      if (!accurateReport) {
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <Card className="w-full border-red-500 max-w-md">
+              <CardContent className="pt-6 text-center">
+                <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Report Not Found</h2>
+                <p className="text-muted-foreground">The scam report you are looking for does not exist.</p>
+              </CardContent>
+            </Card>
+          </div>
+        )
+      }
+
       return (
         <>
                 <StaffHeader />
@@ -82,12 +100,12 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardHeader>
-            <CardContent>
+                    <AlertDialogAction onClick={() => handleDelete({ _id: accurateReport?._id, storageid: prooflister?.[0]?.body, imagestoreid: prooflister?.[0]?._id })}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                  </AlertDialog>
+                </CardHeader>
+                <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-center space-x-3">
@@ -160,7 +178,7 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
                   </div>
                 </div>
               </div>
-              <Approvalzone />
+              <Approvalzone _id={accurateReport?._id} storageid={prooflister?.[0]?.body} imagestoreid={prooflister?.[0]?._id} />
             </CardContent>
           </Card>
         </div>
@@ -169,7 +187,12 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
       )
     }
 
-    const Approvalzone = () => {
+    const Approvalzone = ({_id, storageid, imagestoreid}: any) => {
+      console.log(_id, storageid)
+      const removereport = useMutation(api.reports.clear);
+      const handleRemoveReport = () => {
+        removereport({ id: _id, storageid: storageid, imagestoreid: imagestoreid });
+    };
       return (
         <div className="flex flex-col gap-4 mt-6">
           <h3 className="text-lg font-semibold">Approval Zone</h3>
@@ -193,7 +216,7 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction>Reject</AlertDialogAction>
+                  <AlertDialogAction onClick={handleRemoveReport}>Reject</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
