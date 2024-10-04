@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { api } from '../../../../../../convex/_generated/api';
-import { AlertTriangle, Clock, FileText, Shield, Trash2, UserRound } from "lucide-react"
+import { AlertTriangle, Clock, FileText, Shield, Trash2, UserRound, CheckCircle2Icon } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +37,7 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
     const accurateReport = filteredReport?.[0]
     const prooflister = useQuery(api.submitter.list, accurateReport?.proof ? { body: accurateReport.proof } : { body: "" });
     const proofurl = prooflister?.[0]?.url;    
+    const formatproof = prooflister?.[0]?.format;
     const Subcategory = accurateReport?.selectedSubcategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const Category = accurateReport?.selectedCategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
@@ -57,11 +58,10 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
           </div>
         )
       }
-    
       return (
         <>
                 <StaffHeader />
-        <div className="container mx-auto h-auto px-4 py-8">
+        <div className="container md:mx-auto flex items-center justify-center w-full h-auto px-4 py-8">
           <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-2xl font-bold">Scam Report Viewer</CardTitle>
@@ -139,11 +139,28 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
                 </div>
                 <div className="mt-4">
                   <h4 className="text-sm font-medium mb-2">Proof:</h4>
-                  <p className="text-sm text-muted-foreground">
-                    <img src={proofurl} className="rounded-lg" height="50%" width="50%" />
-                  </p>
+                  <div className="text-sm text-muted-foreground">
+                    {formatproof && formatproof === 'image' ? (
+                      <img
+                        src={proofurl}
+                        className="rounded-lg w-[50%] h-auto"
+                        alt="Proof image"
+                      />
+                    ) : formatproof && formatproof === 'video' ? (
+                      <video
+                        controls
+                        src={proofurl}
+                        className="rounded-lg w-full h-auto"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <p>No proof provided.</p>
+                    )}
+                  </div>
                 </div>
               </div>
+              <Approvalzone />
             </CardContent>
           </Card>
         </div>
@@ -151,6 +168,40 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
         </>
       )
     }
+
+    const Approvalzone = () => {
+      return (
+        <div className="flex flex-col gap-4 mt-6">
+          <h3 className="text-lg font-semibold">Approval Zone</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Button variant="success" className="w-full gap-2">
+              <CheckCircle2Icon className="w-4 h-4" /> <span className="hidden sm:inline">Approve Report</span>
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full gap-2">
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Reject Report</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reject Report</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to reject this report?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction>Reject</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      );
+    }
+
     const ScamReportOverview = ({ report }: any) => {
       return (
         <div className="flex flex-col gap-0.5 pb-3">

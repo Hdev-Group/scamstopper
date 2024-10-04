@@ -12,14 +12,7 @@ import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useMutation, useQuery } from "convex/react";
 import { api } from '../../../../convex/_generated/api'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+
 import Footer from '../../../components/footer/footer'
 
 const scamCategories = [
@@ -128,6 +121,7 @@ const scamCategories = [
   
 
   export default function ReportScam() {
+    const [typefilename, settypefilename] = useState<string>('')
     const user = useUser()
 
     useEffect(() => {
@@ -155,12 +149,14 @@ const scamCategories = [
             const img = document.createElement('img');
             img.src = reader.result as string;
             img.className = 'w-full h-auto';
+            settypefilename('image')
             previewContainer.appendChild(img);
           } else if (file.type.startsWith('video/')) {
             const video = document.createElement('video');
             video.src = reader.result as string;
             video.controls = true;
             video.className = 'w-full h-auto';
+            settypefilename('video')
             previewContainer.appendChild(video);
           }
       
@@ -204,22 +200,10 @@ const scamCategories = [
       const photovidproof = document.getElementById('photovidproof') as HTMLInputElement | null;
     
       try {
-      if (!selectedImage) {
-        alert('Please upload a photo or video proof.');
-        return;
-      }
+
 
       const postUrl = await generateUploadUrl();
       
-      // Step 2: POST the file to the URL
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": selectedImage.type },
-        body: selectedImage,
-      });
-      
-      // Step 3: Extract storageId from the response
-      const { storageId } = await result.json();
       
       // Optional: Handle the selectedImage cleanup
       setSelectedImage(null);
@@ -229,7 +213,6 @@ const scamCategories = [
     
       // Step 4: Prepare form data
       const author = user.user?.firstName || 'unknown';
-      await sendImage({ storageId, author });
       
       const userdetails = [{
         email: user?.user?.emailAddresses[0]?.emailAddress,
@@ -237,9 +220,30 @@ const scamCategories = [
         lastName: user?.user?.lastName,
         id: user?.user?.id
       }];
-
-      const storageinfo = storageId
-    
+      var storageIder = null;
+      if (selectedImage) {
+        try {
+          const result = await fetch(postUrl, {
+            method: "POST",
+            headers: { "Content-Type": selectedImage.type },
+            body: selectedImage,
+          });
+      
+          // Extract storageId from the response
+          const jsonResult = await result.json();
+          storageIder = jsonResult.storageId;
+      
+          if (!storageIder) {
+            console.warn("Warning: storageId is null or undefined.");
+            // You can decide whether to continue or not based on your application logic
+          }
+        } catch (error) {
+          console.error("Error uploading the image:", error);
+          return; // Stop further execution in case of error
+        }
+      }
+      
+      // Create formData regardless of whether there is an image or not
       const formData = {
         selectedCategory,
         selectedSubcategory,
@@ -264,12 +268,16 @@ const scamCategories = [
         hiddenFees,
         destination,
         travelAgency,
-        proof: storageinfo, // Use the storageId retrieved from the response
+        proof: storageIder, // Use the storageId retrieved from the response (can be null)
         status: 'pending',
         reviewer: null,
-        userdetails
+        userdetails,
       };
-    
+      
+      // Call sendImage, allowing storageId to be null
+      if (selectedImage) {
+        await sendImage({ body: storageIder, author, format: typefilename });
+      }
       // Step 5: Call addscamform after successfully getting storageId
       await addscamform(formData).then(() => {
         alert('Scam report submitted successfully.');
@@ -308,7 +316,8 @@ const scamCategories = [
     const [search, setSearch] = useState('')
   
     const filteredscamcats = scamCategories.filter((category) => {
-      return category.name.toLowerCase().includes(search.toLowerCase())
+      const searchTerm = search.toLowerCase();
+      return category.name.toLowerCase().includes(searchTerm)
     })
   
     return (

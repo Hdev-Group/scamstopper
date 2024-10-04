@@ -36,7 +36,7 @@ export default defineSchema({
       travelAgency: v.optional(v.string()),
       status: v.optional(v.string()),
       reviewer: v.optional(v.any()),
-      proof: v.optional(v.string()),
+      proof: v.optional(v.any()),
       userdetails: v.optional(v.array(v.object({
         email: v.optional(v.string()),
         firstName: v.optional(v.string()),
@@ -46,7 +46,7 @@ export default defineSchema({
       lastupdated: v.optional(v.string()), 
     }),
     imagestore: defineTable({
-      body: v.any(),
+      body: v.optional(v.any()),
       author: v.string(),
       format: v.string(),
     }).index("byauthor", ["author"]),

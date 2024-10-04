@@ -73,7 +73,8 @@ interface Report {
   
     const filteredReports = sortedReports?.filter((report) =>
       report.selectedCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.selectedSubcategory?.toLowerCase().includes(searchTerm.toLowerCase())
+      report.selectedSubcategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report._id.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
   return (
@@ -84,7 +85,7 @@ interface Report {
         <div className="mb-4">
           <Input
             type="text"
-            placeholder="Search categories or subcategories..."
+            placeholder="Search ID's, categories or subcategories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
