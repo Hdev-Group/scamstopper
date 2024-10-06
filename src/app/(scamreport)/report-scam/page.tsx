@@ -378,7 +378,7 @@ const scamCategories = [
                     <>
                       <div>
                         <Label htmlFor="phone_number">Phone Number</Label>
-                        <Input id="phone_number" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter phone number" />
+                        <Input id="phone_number" type='phone' value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter phone number" />
                       </div>
                       <div>
                         <Label htmlFor="impersonate">Who was this attempting to impersonate</Label>
@@ -391,7 +391,7 @@ const scamCategories = [
                     <>
                       <div>
                         <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
+                        <Input id="email" value={email} type='email' onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
                       </div>
                       <div>
                         <Label htmlFor="weblinks">Links to Websites</Label>
@@ -411,7 +411,7 @@ const scamCategories = [
                     <>
                       <div>
                         <Label htmlFor="financial_loss">Amount of Financial Loss</Label>
-                        <Input id="financial_loss" value={financialLoss} onChange={(e) => setFinancialLoss(e.target.value)} placeholder="Enter the total amount lost" />
+                        <Input id="financial_loss" type='number' value={financialLoss} onChange={(e) => setFinancialLoss(e.target.value)} placeholder="Enter the total amount lost" />
                       </div>
                       <div>
                         <Label htmlFor="investment_type">Type of Investment</Label>
@@ -492,7 +492,7 @@ const scamCategories = [
                     </div>
                     <div>
                       <Label htmlFor="hidden_fees">Hidden Fees</Label>
-                      <Input id="hidden_fees" value={hiddenFees} onChange={(e) => setHiddenFees(e.target.value)} placeholder="Describe any hidden fees involved" />
+                      <Input id="hidden_fees" type='number' value={hiddenFees} onChange={(e) => setHiddenFees(e.target.value)} placeholder="Describe any hidden fees involved" />
                     </div>
                   </>
                 )}

@@ -40,6 +40,7 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
     const accurateReport = filteredReport?.[0]
     const prooflister = useQuery(api.submitter.list, accurateReport?.proof ? { body: accurateReport.proof } : { body: "" });
     const proofurl = prooflister?.[0]?.url;    
+    console.log(prooflister)
     const formatproof = prooflister?.[0]?.format;
     const Subcategory = accurateReport?.selectedSubcategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const Category = accurateReport?.selectedCategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');

@@ -14,14 +14,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
+import { api } from '../../../convex/_generated/api';
+import { useQuery } from "convex/react";
 
 
 export default function Header() {
   const user = useUser();
   const auth = useAuth();
   const [isdark, setDark] = useState(true);
-
+  var staff = null;
+  const isstaff = useQuery(api.isstaff.getter, { userId: user.user?.id });
+  if (isstaff) {
+    staff = isstaff;
+  }
   useEffect(() => {
     const themesetter = document.getElementById('themesetter');
 
@@ -133,7 +138,15 @@ export default function Header() {
                             <img src={user.user?.imageUrl} className='w-8 h-8 rounded-full' />
                           </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent>
+                        <DropdownMenuContent className='mt-2'>
+                          {
+                            isstaff?.[0]?.role === "admin" &&
+                            <DropdownMenuItem>
+                              <Link href='/staff/reports'>
+                                <div className='dark:text-white text-black'>Staff Zone</div>
+                              </Link>
+                            </DropdownMenuItem>
+                          }
                           <DropdownMenuItem>
                             <Link href='/profile'>
                               <div className='dark:text-white text-black'>Profile</div>

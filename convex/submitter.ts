@@ -31,7 +31,7 @@ export const list = query({
     return Promise.all(
       messages.map(async (message) => {
         // Check if format is "image" and get the Url
-        if (message.format === "image") {
+        if (message.format === "image" || message.format === "video") {
           const imageUrl = await ctx.storage.getUrl(message.body);
 
           return {
