@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { api } from '../../../../../../convex/_generated/api';
-import { AlertTriangle, Clock, FileText, Shield, Trash2, UserRound, CheckCircle2Icon } from "lucide-react"
+import { AlertTriangle, Clock, FileText, Shield, Trash2, UserRound, CheckCircle2Icon, UserCheck, SaveIcon } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
 import { useState } from 'react'
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { on } from "events";
 
 export default function ReportPage({ params }: { params: { _reportid: string } }) {
     const user = useUser();
@@ -44,6 +47,15 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
     const formatproof = prooflister?.[0]?.format;
     const Subcategory = accurateReport?.selectedSubcategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const Category = accurateReport?.selectedCategory?.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+
+    const revieweredit = useMutation(api.reports.reviewerupdater);
+
+    function revieweredits() {
+      return () => {
+      revieweredit({ id: accurateReport?._id, reviewer: userId, status: "Under Review" });
+      };
+    }
 
     // Handle loading and null conditions after the queries are called
     if (!staff) return <div>Loading staff data...</div>;
@@ -84,27 +96,49 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
           <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-2xl font-bold">Scam Report Viewer</CardTitle>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="gap-2 font-medium">
-                    <Trash2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Delete Report</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the scam report
-                      and remove the data from our servers.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete({ _id: accurateReport?._id, storageid: prooflister?.[0]?.body, imagestoreid: prooflister?.[0]?._id })}>Delete</AlertDialogAction>
+              <div className="items-center flex gap-4">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant='default' className="gap-2 font-medium">
+                      <UserCheck className="w-4 h-4" />
+                      <span className="hidden sm:inline">Become the Reviewer</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Become the Reviewer</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {accurateReport.reviewer ? "This report already has a reviewer. Are you sure you want to take over?" : "Are you sure you want to become the reviewer for this report?"}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={revieweredits()}>Become Reviewer</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
-                  </AlertDialog>
+                </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="gap-2 font-medium">
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Delete Report</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the scam report
+                        and remove the data from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete({ _id: accurateReport?._id, storageid: prooflister?.[0]?.body, imagestoreid: prooflister?.[0]?._id })}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
+              </div>
                 </CardHeader>
                 <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -133,7 +167,6 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
               <Separator className="my-6" />
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Report Details</h3>
-                <ScamReportOverview report={accurateReport} />
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="flex flex-col space-y-3">
                     <div className="flex items-center space-x-3">
@@ -142,19 +175,91 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
                     </div>
                     <span>{new Date(accurateReport?._creationTime).toLocaleString()}</span>
                   </div>
-                  <div className="flex flex-col space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <AlertTriangle className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-medium">Severity:</span>
-                    </div>
-                    <Badge variant="destructive">High</Badge>
-                  </div>
                 </div>
                 <div className="mt-4">
                   <h4 className="text-sm font-medium mb-2">Description:</h4>
                   <p className="text-sm text-muted-foreground">
                     {accurateReport?.description || "No description provided."}
                   </p>
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Report Extra Information</h4>
+                  {
+                    accurateReport && (
+                      <div className="flex flex-wrap gap-5 flex-row">
+                        {accurateReport.phone && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Phone:</strong> {accurateReport.phone}
+                          </p>
+                        )}
+                        {accurateReport.email && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Email:</strong> {accurateReport.email}
+                          </p>
+                        )}
+                        {accurateReport.websiteUrl && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Website:</strong> {accurateReport.websiteUrl}
+                          </p>
+                        )}
+                        {accurateReport.onlinePlatform && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Online Platform:</strong> {accurateReport.onlinePlatform}
+                          </p>
+                        )}
+                        {accurateReport.financialLoss && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Financial Loss:</strong> {accurateReport.financialLoss}
+                          </p>
+                        )}
+                        {accurateReport.subscriptionService && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Subscription Service:</strong> {accurateReport.subscriptionService}
+                          </p>
+                        )}
+                        {accurateReport.healthClaim && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Health Claim:</strong> {accurateReport.healthClaim}
+                          </p>
+                        )}
+                        {accurateReport.charityName && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Charity Name:</strong> {accurateReport.charityName}
+                          </p>
+                        )}
+                        {accurateReport.donationAmount && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Donation Amount:</strong> {accurateReport.donationAmount}
+                          </p>
+                        )}
+                        {accurateReport.productName && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Product Name:</strong> {accurateReport.productName}
+                          </p>
+                        )}
+                        {accurateReport.travelAgency && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Travel Agency:</strong> {accurateReport.travelAgency}
+                          </p>
+                        )}
+                        {accurateReport.destination && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Destination:</strong> {accurateReport.destination}
+                          </p>
+                        )}
+                        {accurateReport.proof && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Proof Provided:</strong> Yes
+                          </p>
+                        )}
+                        {accurateReport.staffnotes && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Staff Notes:</strong> {accurateReport.staffnotes}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }
                 </div>
                 <div className="mt-4">
                   <h4 className="text-sm font-medium mb-2">Proof:</h4>
@@ -179,6 +284,8 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
                   </div>
                 </div>
               </div>
+              <Separator className="my-6" />
+              <StaffReviews accurateReport={accurateReport} prooflister={prooflister} />
               <Approvalzone _id={accurateReport?._id} storageid={prooflister?.[0]?.body} imagestoreid={prooflister?.[0]?._id} />
             </CardContent>
           </Card>
@@ -198,9 +305,25 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
         <div className="flex flex-col gap-4 mt-6">
           <h3 className="text-lg font-semibold">Approval Zone</h3>
           <div className="grid gap-4 md:grid-cols-2">
-            <Button variant="success" className="w-full gap-2">
-              <CheckCircle2Icon className="w-4 h-4" /> <span className="hidden sm:inline">Approve Report</span>
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="success" className="w-full gap-2">
+                  <CheckCircle2Icon className="w-4 h-4" /> <span className="hidden sm:inline">Approve Report</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Approve Report</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to approve this report?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction>Approve</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full gap-2">
@@ -225,37 +348,43 @@ export default function ReportPage({ params }: { params: { _reportid: string } }
         </div>
       );
     }
+    const StaffReviews = ({ accurateReport, prooflister }: any) => {
+      
+      // when form is submitted, update the review notes
+      const updateReviewNotes = useMutation(api.reports.update);
 
-    const ScamReportOverview = ({ report }: any) => {
+      onsubmit = (e) => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        const staffnotes = formData.get("reviewNotes") as string;
+        updateReviewNotes({ id: accurateReport._id, staffnotes });
+      }
+  
       return (
-        <div className="flex flex-col gap-0.5 pb-3">
-          <p className="text-xs dark:text-gray-500">Report overview</p>
-          <p className="text-wrap text-sm">
-            This scam is a{" "}
-            {report.selectedSubcategory
-              ? report.selectedSubcategory
-              : report.customCategory}{" "}
-            based scam, {" "}
-            {report.phone && `Phone number used: ${report.phone}. `} 
-            {report.email && `Email used: ${report.email}. `} 
-            {report.financialLoss && `Financial loss is estimated at £${report.financialLoss}. `} 
-            {report.websiteUrl && `the website URL is ${report.websiteUrl}. `} 
-            {report.onlinePlatform && `Platform used ${report.onlinePlatform}. `} 
-            {report.productName && `Product name: ${report.productName}. `} 
-            {report.healthClaim && `Health claim: ${report.healthClaim}. `} 
-            {report.loanType && `Loan type: ${report.loanType}. `} 
-            {report.lenderName && `Lender name: ${report.lenderName}. `} 
-            {report.subscriptionService && `Subscription service: ${report.subscriptionService}. `} 
-            {report.hiddenFees && `Hidden fees: ${report.hiddenFees}. `} 
-            {report.destination && `Destination: ${report.destination}. `} 
-            {report.travelAgency && `Travel agency: ${report.travelAgency}. `} 
-            {report.charityName && `Charity name: ${report.charityName}. `} 
-            {report.donationAmount && `Donation amount: ${report.donationAmount}. `} 
-            {report.status && `Its current review status is ${report.status}. `} 
-            {report.reviewer && `Reviewed by: ${report.reviewer}. `} 
-            {report.lastupdated && `This report was last updated on ${new Date(report.lastupdated).toLocaleDateString()}.`}
-          </p>
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold">Staff Reviews</h3>
+          <div className="grid gap-4 mt-3 md:grid-cols-2">
+            <div className="flex flex-col space-y-3">
+              <div className="flex items-center space-x-3">
+                <UserRound className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm font-medium">Reviewer:</span>
+              </div>
+              <span className="text-sm">{accurateReport?.reviewer || "No reviewer assigned."}</span>
+            </div>
+          </div>
+          <div className="mt-4">
+            <h4 className="text-sm font-medium mb-2">Review Notes:</h4>
+            <form>
+              <p className="text-sm text-muted-foreground">
+                <Textarea name="reviewNotes" placeholder="Add review notes...">{accurateReport?.staffnotes}</Textarea>
+              </p>
+              <Button type="submit" variant='default' className="mt-4 flex gap-2">
+                <SaveIcon className="w-4 h-4" />
+                <span className="hidden sm:block">Save Review Notes</span>
+              </Button>
+            </form>
+          </div>
         </div>
       );
-    };
-    
+    }

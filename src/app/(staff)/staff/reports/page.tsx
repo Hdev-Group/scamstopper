@@ -127,7 +127,7 @@ interface Report {
                   <TableCell>
                     <Badge variant={
                       report.status === 'pending' ? 'destructive' : 
-                      report.status === 'reviewed' ? 'warning' : 
+                      report.status === 'Under Review' ? 'warning' : 
                       report.status === 'resolved' ? 'success' : 
                       'secondary'
                     }>

@@ -43,6 +43,7 @@ export default defineSchema({
         lastName: v.optional(v.string()),
         id: v.optional(v.string()),
       }))),
+      staffnotes: v.optional(v.string()),
       lastupdated: v.optional(v.string()), 
     }),
     imagestore: defineTable({
