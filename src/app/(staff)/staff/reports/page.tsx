@@ -39,13 +39,12 @@ interface Report {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [searchTerm, setSearchTerm] = useState("");
   
-    if (!user) return null;
-  
-    const userId = user?.user?.id;
+    const userId = user?.user?.id ?? '';
 
-  
     const staff = useQuery(api.isstaff.getter, { userId });
     const reports = useQuery(api.scamreportsreviewer.getter);
+  
+    if (!user) return null;
 
     if (!staff) return null;
     function handleReview(id: string) {
@@ -128,7 +127,7 @@ interface Report {
                     <Badge variant={
                       report.status === 'pending' ? 'destructive' : 
                       report.status === 'Under Review' ? 'warning' : 
-                      report.status === 'resolved' ? 'success' : 
+                      report.status === 'resolved' ? 'default' : 
                       'secondary'
                     }>
                       {report.status ? report.status.charAt(0).toUpperCase() + report.status.slice(1) : 'No Status'}
